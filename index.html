@@ -24,7 +24,7 @@ body {
   touch-action: manipulation;
 }
 
-/* ===== SAFE MOBILE SCALING WRAPPER ===== */
+/* SAFE MOBILE SCALING */
 .game-container {
   position: absolute;
   inset: 0;
@@ -37,7 +37,6 @@ body {
   transform-origin: center center;
 }
 
-/* CANVAS — UNCHANGED */
 canvas {
   display: block;
   background: linear-gradient(#2c2c2c, #1a1a1a);
@@ -82,7 +81,7 @@ canvas {
   background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.96));
   display: flex;
   flex-direction: column;
-  justify-content:ohnc hntgn hqloy center;
+  justify-content: center;
   align-items: center;
   z-index: 10;
   text-align: center;
@@ -144,20 +143,19 @@ button {
 
 <div class="center" id="result"></div>
 
-<!-- ===== SAFE SCALE WRAPPER ===== -->
 <div class="game-container">
   <div class="game-scale" id="gameScale">
     <canvas id="game" width="900" height="400"></canvas>
   </div>
 </div>
 
-<!-- AUDIO (UNCHANGED) -->
+<!-- AUDIO -->
 <audio id="engine" src="engine.mp3" loop></audio>
 <audio id="click" src="click.mp3"></audio>
 <audio id="winSound" src="win.mp3"></audio>
 
 <script>
-/* ===== SAFE SCALING ONLY ===== */
+/* SAFE SCALING */
 const scaleEl = document.getElementById("gameScale");
 function updateScale() {
   const scale = Math.min(
@@ -169,7 +167,7 @@ function updateScale() {
 window.addEventListener("resize", updateScale);
 updateScale();
 
-/* ===== ORIGINAL GAME CODE (100% UNCHANGED) ===== */
+/* GAME */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -182,6 +180,9 @@ silhouetteImg.src = "silhouette.png";
 const engine = document.getElementById("engine");
 const clickSound = document.getElementById("click");
 const winSound = document.getElementById("winSound");
+
+engine.volume = 0.35;
+winSound.volume = 0.6;
 
 let running = false;
 let finished = false;
@@ -200,8 +201,7 @@ let speedLines = Array.from({ length: 40 }, () => ({
   len: Math.random() * 40 + 20
 }));
 
-engine.volume = 0.35;
-winSound.volume = 0.6;
+let lastTime = performance.now();
 
 function startGame() {
   startScreen.style.display = "none";
@@ -209,21 +209,25 @@ function startGame() {
   engine.play();
 }
 
-function resetKart(){ kart.x = -300; }
+function resetKart() { kart.x = -300; }
 
-function update(){
+function update(delta = 1) {
   if (!running || finished) return;
-  kart.x += kart.speed;
+
+  kart.x += kart.speed * delta;
   if (kart.x > canvas.width + 50) miss();
+
   speedLines.forEach(l => {
-    l.x -= kart.speed * 3;
+    l.x -= kart.speed * 3 * delta;
     if (l.x < -l.len) l.x = canvas.width + Math.random() * 200;
   });
-  if (shakeTime > 0) shakeTime--;
+
+  if (shakeTime > 0) shakeTime -= delta;
 }
 
-function draw(){
+function draw() {
   ctx.save();
+
   if (shakeTime > 0)
     ctx.translate((Math.random()-0.5)*10,(Math.random()-0.5)*10);
 
@@ -242,8 +246,10 @@ function draw(){
   ctx.restore();
 }
 
-function checkClick(){
+function checkClick(e) {
+  e.preventDefault();
   if (!running || finished) return;
+
   clickSound.play();
   const diff = Math.abs(kart.x - targetX);
 
@@ -267,7 +273,7 @@ function checkClick(){
   if (score >= 15) win();
 }
 
-function miss(){
+function miss() {
   lives--;
   streak = 1;
   showText("MISS!", "var(--danger)");
@@ -276,20 +282,20 @@ function miss(){
   if (lives <= 0) gameOver();
 }
 
-function updateHUD(){
+function updateHUD() {
   livesEl.textContent = lives;
   scoreEl.textContent = score;
   streakEl.textContent = streak + "x";
 }
 
-function showText(text,color){
+function showText(text, color) {
   result.style.color = color;
   result.textContent = text;
   result.style.display = "block";
-  setTimeout(()=>result.style.display="none",700);
+  setTimeout(() => result.style.display="none",700);
 }
 
-function win(){
+function win() {
   finished = true;
   engine.pause();
   winSound.currentTime = 0;
@@ -298,7 +304,7 @@ function win(){
   winScreen.style.display = "flex";
 }
 
-function gameOver(){
+function gameOver() {
   finished = true;
   engine.pause();
   alert("💀 GAME OVER\nScore: " + score);
@@ -312,15 +318,17 @@ const result = document.getElementById("result");
 const winScreen = document.getElementById("winScreen");
 const finalScore = document.getElementById("finalScore");
 
-canvas.addEventListener("click", checkClick);
-canvas.addEventListener("touchstart", checkClick, { passive:true });
+/* SINGLE INPUT SYSTEM — NO DOUBLE TAP */
+canvas.addEventListener("pointerdown", checkClick);
 
-function loop(){
-  update();
+function loop(time) {
+  const delta = (time - lastTime) / 16.67;
+  lastTime = time;
+  update(delta);
   draw();
   requestAnimationFrame(loop);
 }
-loop();
+requestAnimationFrame(loop);
 </script>
 
 </body>
