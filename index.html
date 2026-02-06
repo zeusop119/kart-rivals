@@ -24,7 +24,6 @@ body {
   touch-action: manipulation;
 }
 
-/* SAFE MOBILE SCALING */
 .game-container {
   position: absolute;
   inset: 0;
@@ -44,7 +43,6 @@ canvas {
   box-shadow: 0 30px 80px rgba(0,0,0,0.8);
 }
 
-/* HUD */
 .hud {
   position: absolute;
   top: 20px;
@@ -120,21 +118,18 @@ button {
 </head>
 <body>
 
-<!-- START SCREEN -->
 <div class="overlay" id="startScreen">
   <div class="title">KART RIVALS</div>
   <div class="subtitle">Precision Racing Challenge</div>
   <button onclick="startGame()">START RACE</button>
 </div>
 
-<!-- WIN SCREEN -->
 <div class="overlay" id="winScreen" style="display:none;">
   <div class="title">🏆 WINNER</div>
   <div class="win-score">FINAL SCORE: <span id="finalScore">0</span></div>
   <button onclick="location.reload()" style="margin-top:40px;">PLAY AGAIN</button>
 </div>
 
-<!-- HUD -->
 <div class="hud">
   ❤️ Lives: <span id="lives">10</span><br>
   ⭐ Score: <span id="score">0</span><br>
@@ -149,13 +144,11 @@ button {
   </div>
 </div>
 
-<!-- AUDIO -->
 <audio id="engine" src="engine.mp3" loop></audio>
 <audio id="click" src="click.mp3"></audio>
 <audio id="winSound" src="win.mp3"></audio>
 
 <script>
-/* SAFE SCALING */
 const scaleEl = document.getElementById("gameScale");
 function updateScale() {
   const scale = Math.min(
@@ -167,7 +160,6 @@ function updateScale() {
 window.addEventListener("resize", updateScale);
 updateScale();
 
-/* GAME */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -187,7 +179,8 @@ winSound.volume = 0.6;
 let running = false;
 let finished = false;
 
-let kart = { x:-300, y:230, speed:4, width:260, height:90 };
+/* 🔥🔥🔥 INSANE SPEED 🔥🔥🔥 */
+let kart = { x:-300, y:230, speed:9.5, width:260, height:90 };
 const targetX = 520;
 
 let lives = 10;
@@ -218,7 +211,7 @@ function update(delta = 1) {
   if (kart.x > canvas.width + 50) miss();
 
   speedLines.forEach(l => {
-    l.x -= kart.speed * 3 * delta;
+    l.x -= kart.speed * 3.5 * delta;
     if (l.x < -l.len) l.x = canvas.width + Math.random() * 200;
   });
 
@@ -227,9 +220,8 @@ function update(delta = 1) {
 
 function draw() {
   ctx.save();
-
   if (shakeTime > 0)
-    ctx.translate((Math.random()-0.5)*10,(Math.random()-0.5)*10);
+    ctx.translate((Math.random()-0.5)*14,(Math.random()-0.5)*14);
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -240,7 +232,7 @@ function draw() {
   ctx.drawImage(silhouetteImg,targetX,kart.y,kart.width,kart.height);
   ctx.globalAlpha=1;
 
-  ctx.drawImage(kartImg,kart.x-10,kart.y,kart.width,kart.height);
+  ctx.drawImage(kartImg,kart.x-14,kart.y,kart.width,kart.height);
   ctx.drawImage(kartImg,kart.x,kart.y,kart.width,kart.height);
 
   ctx.restore();
@@ -256,13 +248,13 @@ function checkClick(e) {
   if (diff < 10) {
     score += 2 * streak;
     streak++;
-    kart.speed += 0.6;
-    shakeTime = 15;
+    kart.speed += 2.2;      // 🔥 PERFECT BOOST
+    shakeTime = 18;
     showText(`PERFECT x${streak}`, "var(--success)");
   } else if (diff < 30) {
     score += 1 * streak;
     streak++;
-    kart.speed += 0.3;
+    kart.speed += 1.2;      // 🔥 GOOD BOOST
     showText(`GOOD x${streak}`, "var(--accent)");
   } else {
     miss(); return;
@@ -318,7 +310,6 @@ const result = document.getElementById("result");
 const winScreen = document.getElementById("winScreen");
 const finalScore = document.getElementById("finalScore");
 
-/* SINGLE INPUT SYSTEM — NO DOUBLE TAP */
 canvas.addEventListener("pointerdown", checkClick);
 
 function loop(time) {
